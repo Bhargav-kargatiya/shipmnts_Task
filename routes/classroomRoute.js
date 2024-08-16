@@ -1,5 +1,5 @@
 import express from "express";
-import { addStudentToClassroom, assignTaskToClassroom, createClassroom, deleteClassroom, deleteStudentFromClassroom, editClassroom } from "../controllers/Classroom.js";
+import { addStudentToClassroom, assignTaskToClassroom, createClassroom, deleteClassroom, deleteStudentFromClassroom, editClassroom, getTaskSubmissionStatus } from "../controllers/Classroom.js";
 
 
 
@@ -11,6 +11,7 @@ classroomRoutes.delete('/:classroomId/students/:studentId', deleteStudentFromCla
 classroomRoutes.post('/:classroomId/tasks', assignTaskToClassroom);
 classroomRoutes.put('/:classroomId', editClassroom);
 classroomRoutes.delete('/:classroomId', deleteClassroom);
+classroomRoutes.get('/:classroomId/tasks/:taskId/submissions', getTaskSubmissionStatus);
 
 
 export default classroomRoutes  

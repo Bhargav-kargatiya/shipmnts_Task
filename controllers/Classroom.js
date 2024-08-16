@@ -156,36 +156,67 @@ export const editClassroom = asyncHandler(async (req, res) => {
 
 export const deleteClassroom = asyncHandler(async (req, res) => {
     try {
-        const { classroomId } = req.params;  // Extract classroomId from the URL parameters
-
-        // Find the classroom and populate tasks and students
+        const { classroomId } = req.params;
         const classroom = await Classroom.findById(classroomId).populate('tasks').populate('students');
         if (!classroom) {
             return res.status(404).json({ message: 'Classroom not found' });
         }
-
-        // Delete all tasks associated with the classroom
         await Task.deleteMany({ _id: { $in: classroom.tasks } });
 
-        // Remove the classroom reference from each student
         for (const studentId of classroom.students) {
             await Student.findByIdAndUpdate(studentId, { $pull: { classrooms: classroomId } });
         }
-
-        // Remove the classroom reference from the associated teacher
+        for (const studentId of classroom.students) {
+            await Student.findByIdAndUpdate(studentId, {
+                $pull: { classrooms: classroomId, 'tasks.task': { $in: classroom.tasks } }
+            });
+        }
         await Teacher.updateMany(
             { classrooms: classroomId },
             { $pull: { classrooms: classroomId } }
         );
-
-        // Delete the classroom itself
         await Classroom.findByIdAndDelete(classroomId);
-
-        // Return the response
         res.status(200).json({ message: 'Classroom and associated tasks deleted successfully.' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
+
+
+export const getTaskSubmissionStatus = asyncHandler(async (req, res) => {
+    try {
+        const { classroomId, taskId } = req.params;
+        const classroom = await Classroom.findById(classroomId).populate('students');
+        if (!classroom) {
+            return res.status(404).json({ message: 'Classroom not found' });
+        }
+
+        const task = await Task.findById(taskId);
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+
+        const submissions = [];
+
+        for (const student of classroom.students) {
+
+            const studentTask = student.tasks.find(t => t.task.toString() === taskId);
+            const status = studentTask ? studentTask.status : 'pending';
+            submissions.push({
+                studentId: student._id,
+                studentName: student.name,
+                status
+            });
+        }
+        res.status(200).json(submissions);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+
 
