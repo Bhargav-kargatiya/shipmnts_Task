@@ -2,7 +2,7 @@
 To run this project locally, follow these steps:
 1. **Clone the repository:**
    ```bash
-   https://github.com/Bhargav-kargatiya/E-commerce-API.git 
+   https://github.com/Bhargav-kargatiya/shipmnts_Task.git 
 
 2. **Install dependencies:**
    ```bash
