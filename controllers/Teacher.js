@@ -1,7 +1,7 @@
 import Teacher from "../models/Teacher.js";
 import asyncHandler from "express-async-handler";
 
-const createTeacher = async (req, res) => {
+export const createTeacher = asyncHandler(async (req, res) => {
     try {
 
         const { name, email } = req.body;
@@ -25,5 +25,23 @@ const createTeacher = async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
-};
+});
 export default createTeacher;
+
+export const viewClassrooms = asyncHandler(async (req, res) => {
+    try {
+        const { teacherId } = req.params;  // Extract teacherId from the URL parameters
+
+        // Find the teacher and populate their classrooms
+        const teacher = await Teacher.findById(teacherId).populate('classrooms');
+        if (!teacher) {
+            return res.status(404).json({ message: 'Teacher not found' });
+        }
+
+        // Return the list of classrooms
+        res.status(200).json(teacher.classrooms);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});

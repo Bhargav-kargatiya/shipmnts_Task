@@ -1,5 +1,6 @@
 import Classroom from "../models/Classroom.js";
 import Student from "../models/Student.js";
+import Task from "../models/Task.js";
 import Teacher from "../models/Teacher.js";
 import asyncHandler from "express-async-handler";
 
@@ -68,25 +69,17 @@ export const addStudentToClassroom = asyncHandler(async (req, res) => {
 
 export const deleteStudentFromClassroom = asyncHandler(async (req, res) => {
     try {
-        const { classroomId, studentId } = req.params;  // Extract classroomId and studentId from the URL parameters
-
-        // Check if the classroom exists
+        const { classroomId, studentId } = req.params;
         const classroom = await Classroom.findById(classroomId);
         if (!classroom) {
             return res.status(404).json({ message: 'Classroom not found' });
         }
-
-        // Check if the student is in the classroom
         const studentIndex = classroom.students.indexOf(studentId);
         if (studentIndex === -1) {
             return res.status(404).json({ message: 'Student not found in the classroom' });
         }
-
-        // Remove the student from the classroom
         classroom.students.splice(studentIndex, 1);
         await classroom.save();
-
-        // Remove the classroom from the student's list of classrooms
         const student = await Student.findById(studentId);
         if (student) {
             const classroomIndex = student.classrooms.indexOf(classroomId);
@@ -95,13 +88,71 @@ export const deleteStudentFromClassroom = asyncHandler(async (req, res) => {
                 await student.save();
             }
         }
-
-        // Return the response
         res.status(200).json({ message: 'Student removed successfully.' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
+export const assignTaskToClassroom = asyncHandler(async (req, res) => {
+    try {
+        const { classroomId } = req.params;
+        const { title, description, dueDate } = req.body;
+        const classroom = await Classroom.findById(classroomId).populate('students');
+        if (!classroom) {
+            return res.status(404).json({ message: 'Classroom not found' });
+        }
+
+        const newTask = new Task({
+            title,
+            description,
+            dueDate,
+            classroom: classroomId
+        });
+        const savedTask = await newTask.save();
+        classroom.tasks.push(savedTask._id);
+        await classroom.save();
+        for (let student of classroom.students) {
+            student.tasks.push({ task: savedTask._id, status: 'pending' });
+            await student.save();
+        }
+        res.status(201).json({
+            taskId: savedTask._id,
+            title: savedTask.title,
+            description: savedTask.description,
+            dueDate: savedTask.dueDate.toISOString().split('T')[0]
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+export const editClassroom = asyncHandler(async (req, res) => {
+    try {
+        const { classroomId } = req.params;
+        const { name } = req.body;
+
+
+        // Find and update the classroom
+        const updatedClassroom = await Classroom.findByIdAndUpdate(
+            classroomId,
+            { name },
+            { new: true }
+        );
+        if (!updatedClassroom) {
+            return res.status(404).json({ message: 'Classroom not found' });
+        }
+        res.status(200).json({
+            message: 'Classroom updated successfully.',
+            classroomName: updatedClassroom
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 
 
