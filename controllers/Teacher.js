@@ -1,8 +1,7 @@
 import Teacher from "../models/Teacher.js";
-
+import asyncHandler from "express-async-handler";
 
 const createTeacher = async (req, res) => {
-
     try {
 
         const { name, email } = req.body;

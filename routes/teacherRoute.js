@@ -1,6 +1,6 @@
 import express from "express";
 import createTeacher from "../controllers/Teacher.js";
-import createClassroom from "../controllers/Classroom.js";
+import { createClassroom } from "../controllers/Classroom.js";
 
 
 

@@ -5,6 +5,7 @@ import teacherRoutes from "../routes/teacherRoute.js";
 import dbConnect from "../config/dbConnect.js";
 import dotenv from 'dotenv';
 import classroomRoutes from "../routes/classroomRoute.js";
+import studentRoutes from "../routes/studentRoute.js";
 
 
 dotenv.config();
@@ -17,6 +18,7 @@ app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
 app.use('/teachers', teacherRoutes);
 app.use('/classrooms', classroomRoutes);
+app.use('/students', studentRoutes);
 
 
 export default app
