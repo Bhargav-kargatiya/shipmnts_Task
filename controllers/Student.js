@@ -78,4 +78,48 @@ export const getStudentClassroomTasks = asyncHandler(async (req, res) => {
 });
 
 
+export const submitTask = asyncHandler(async (req, res) => {
+    try {
+        const { studentId, classroomId, taskId } = req.params;
+        const { document } = req.files;
+        const task = await Task.findById(taskId);
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+        const dueDate = new Date(task.dueDate);
+        if (new Date() > dueDate) {
+            return res.status(400).json({ message: 'Task submission is closed as the due date has passed' });
+        }
+        const student = await Student.findById(studentId);
+        const classroom = await Classroom.findById(classroomId);
+
+        if (!student || !classroom) {
+            return res.status(404).json({ message: 'Student or classroom not found' });
+        }
+        if (!student.classrooms.includes(classroomId)) {
+            return res.status(403).json({ message: 'Student is not enrolled in this classroom' });
+        }
+        const studentTask = student.tasks.find(t => t.task.toString() === taskId);
+        if (studentTask && studentTask.status === 'submitted') {
+            return res.status(400).json({ message: 'Task already submitted' });
+        }
+        if (studentTask) {
+            studentTask.status = 'submitted';
+            studentTask.document = document;
+        } else {
+            student.tasks.push({ task: taskId, status: 'submitted', document });
+        }
+        await student.save();
+        res.status(200).json({
+            taskId: task._id.toString(),
+            title: task.title,
+            description: task.description,
+            dueDate: task.dueDate.toISOString().split('T')[0]
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 
