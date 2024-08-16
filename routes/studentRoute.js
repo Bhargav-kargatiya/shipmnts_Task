@@ -1,10 +1,11 @@
 import express from "express";
-import { createStudent } from "../controllers/Student.js";
+import { createStudent, getStudentClassrooms } from "../controllers/Student.js";
 
 
 
 const studentRoutes = express.Router();
 studentRoutes.post('/create', createStudent);
+studentRoutes.get('/:studentId/classrooms', getStudentClassrooms);
 
 
 
