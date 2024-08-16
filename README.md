@@ -8,7 +8,12 @@ To run this project locally, follow these steps:
    ```bash
    npm install   
    ```
-3. **Start the server:**
+ 3. **Environment Variables:**
+Create a `.env` file in the root of the backend and frontend directories and add the following variables:
+     ```bash
+     MONGODB_URI=your_mongodb_connection_string
+      ```   
+4. **Start the server:**
    ```bash
    npm run server  
    ```
